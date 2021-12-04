@@ -1,77 +1,77 @@
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    io::BufRead,
-};
+use std::{collections::HashMap, io::BufRead};
 
 use anyhow::{anyhow, Result};
 
 #[derive(Debug)]
 struct Position {
-    id: i32,
+    id: usize,
     row: i16,
     col: i16,
 }
 
 #[derive(Debug)]
 struct BoardState {
-    data: HashMap<i32, Vec<i32>>,
+    data: HashMap<usize, Vec<i32>>,
     by_value: HashMap<i32, Vec<Position>>,
-    size: i32,
-    num_boards: i32,
+    size: usize,
+    num_boards: usize,
 }
 
 struct SolverIter<'a> {
     marked: Vec<i32>,
-    winner_ids: HashSet<i32>,
     state: &'a BoardState,
-    seq: &'a Vec<i32>,
+    seq: Vec<i32>,
     curr_idx: usize,
-    result: VecDeque<(i32, i32)>,
+    result: Vec<(usize, i32)>,
 }
 
 impl Iterator for SolverIter<'_> {
-    type Item = (i32, i32); // (id, score)
+    type Item = (usize, i32); // (id, score)
 
     fn next(&mut self) -> Option<Self::Item> {
-        while self.curr_idx < self.seq.len() && self.result.len() == 0 {
+        while self.curr_idx < self.seq.len() && self.result.is_empty() {
             let s = self.seq[self.curr_idx];
+            let sz = self.state.size;
 
             if let Some(b) = self.state.by_value.get(&s) {
                 for p in b {
-                    if self.winner_ids.get(&p.id) != None {
+                    let base = p.id * sz * 2;
+                    if self.marked[base] == -1 {
                         continue;
                     }
 
-                    let idx = (p.id * self.state.size * 2 + p.row as i32) as usize;
-                    self.marked[idx] += 1;
-                    if self.marked[idx] == self.state.size {
-                        self.result.push_back((p.id, -1));
+                    let idx = base + p.row as usize;
+                    self.marked[idx] -= 1;
+                    if self.marked[idx] == 0 {
+                        self.result.push((p.id, 0));
                         continue;
                     }
 
-                    let idx =
-                        (p.id * self.state.size * 2 + self.state.size + p.col as i32) as usize;
-                    self.marked[idx] += 1;
-                    if self.marked[idx] == self.state.size {
-                        self.result.push_back((p.id, -1));
+                    let idx = base + sz + p.col as usize;
+                    self.marked[idx] -= 1;
+                    if self.marked[idx] == 0 {
+                        self.result.push((p.id, 0));
                     }
                 }
             }
 
-            if self.result.len() > 0 {
-                let marked_nums: HashSet<_> = self.seq[..self.curr_idx + 1].iter().collect();
+            if !self.result.is_empty() {
+                let seq = &mut self.seq[..self.curr_idx + 1];
+                seq.sort_unstable();
+
                 for (m, score) in self.result.iter_mut() {
-                    self.winner_ids.insert(*m);
-                    *score = s * self.state.data[m as &i32]
+                    self.marked[(*m * sz * 2)..((*m + 1) * sz * 2)].fill(-1);
+
+                    *score = s * self.state.data[m]
                         .iter()
-                        .filter(|&v| marked_nums.get(v).is_none())
+                        .filter(|&v| seq.binary_search(v).is_err())
                         .sum::<i32>();
                 }
             }
 
             self.curr_idx += 1;
         }
-        return self.result.pop_front();
+        self.result.pop()
     }
 }
 
@@ -85,21 +85,27 @@ impl BoardState {
         }
     }
 
-    fn parse_board(self: &mut Self, lines: impl Iterator<Item = String>) -> Result<bool> {
+    fn parse_board(&mut self, lines: impl Iterator<Item = String>) -> Result<bool> {
         let mut parsed = 0;
         for (row, l) in lines.enumerate() {
-            if l.len() == 0 {
+            if l.is_empty() {
                 break;
             }
 
             for (col, c) in l.split_ascii_whitespace().enumerate() {
                 let n = c.parse()?;
-                self.by_value.entry(n).or_insert(vec![]).push(Position {
-                    id: self.num_boards,
-                    row: row as i16,
-                    col: col as i16,
-                });
-                self.data.entry(self.num_boards).or_insert(vec![]).push(n);
+                self.by_value
+                    .entry(n)
+                    .or_insert_with(Vec::new)
+                    .push(Position {
+                        id: self.num_boards,
+                        row: row as i16,
+                        col: col as i16,
+                    });
+                self.data
+                    .entry(self.num_boards)
+                    .or_insert_with(Vec::new)
+                    .push(n);
             }
             parsed += 1;
         }
@@ -112,14 +118,13 @@ impl BoardState {
         Ok(true)
     }
 
-    fn solve_bingo<'a>(self: &'a Self, seq: &'a Vec<i32>) -> impl Iterator<Item = (i32, i32)> + 'a {
+    fn solve_bingo(&self, seq: Vec<i32>) -> impl Iterator<Item = (usize, i32)> + '_ {
         SolverIter {
-            marked: vec![0; (self.num_boards * self.size * 2) as usize],
-            winner_ids: HashSet::new(),
+            marked: vec![self.size as i32; self.num_boards * self.size * 2],
             state: self,
-            seq: &seq,
+            seq,
             curr_idx: 0,
-            result: VecDeque::new(),
+            result: Vec::new(),
         }
     }
 }
@@ -129,7 +134,7 @@ fn parse(f: impl BufRead) -> Result<(Vec<i32>, BoardState)> {
     let mut lines = f.lines().filter_map(|l| l.ok());
     {
         let first_line = lines.next().ok_or(anyhow!("missing line"))?;
-        for c in first_line.split(",") {
+        for c in first_line.split(',') {
             m.push(c.parse()?);
         }
     }
@@ -144,7 +149,7 @@ fn parse(f: impl BufRead) -> Result<(Vec<i32>, BoardState)> {
 fn main() -> Result<()> {
     let (m, b) = parse(std::io::BufReader::new(std::io::stdin()))?;
 
-    let mut ret = b.solve_bingo(&m);
+    let mut ret = b.solve_bingo(m);
 
     let (_, score) = ret.next().ok_or(anyhow!("cannot find first"))?;
     let (_, last_score) = ret.last().ok_or(anyhow!("cannot find last"))?;
@@ -163,7 +168,7 @@ mod tests {
         let (m, b) = parse(&f[..]).unwrap();
         assert_eq!(m.len(), 27);
         assert_eq!(b.num_boards, 3);
-        let mut ret = b.solve_bingo(&m);
+        let mut ret = b.solve_bingo(m);
         assert_eq!(ret.next().unwrap(), (2, 4512));
         assert_eq!(ret.last().unwrap(), (1, 1924));
     }

@@ -15,14 +15,14 @@ fn parse(f: impl std::io::BufRead) -> std::io::Result<(Vec<usize>, usize)> {
     Ok((val, bitlen))
 }
 
-fn bit_stat(vals: &Vec<usize>, bitlen: usize) -> std::io::Result<(usize, usize)> {
+fn bit_stat(vals: &[usize], bitlen: usize) -> std::io::Result<(usize, usize)> {
     let mut cnt = vec![0; bitlen];
     for v in vals {
-        for i in 0..bitlen {
+        for (i, c) in cnt.iter_mut().enumerate() {
             if v & (1 << i) == 0 {
-                cnt[i] -= 1;
+                *c -= 1;
             } else {
-                cnt[i] += 1;
+                *c += 1;
             }
         }
     }

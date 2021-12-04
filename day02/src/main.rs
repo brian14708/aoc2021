@@ -4,31 +4,31 @@ use anyhow::{anyhow, bail, Result};
 use itertools::Itertools;
 
 fn dist(f: impl std::io::BufRead) -> Result<(i32, i32, i32)> {
-    let mut h = 0;
-    let mut v = 0;
+    let mut h_coord = 0;
+    let mut v_coord = 0;
     let mut v_with_aim = 0;
     for l in f.lines() {
         let l = l?;
         let (cmd, n) = l
-            .split(" ")
+            .split(' ')
             .next_tuple()
-            .ok_or(anyhow!("invalid line encountered: {}", l))?;
+            .ok_or_else(|| anyhow!("invalid line encountered: {}", l))?;
         let n = n.parse::<i32>()?;
         match cmd {
             "forward" => {
-                h += n;
-                v_with_aim += v * n;
+                h_coord += n;
+                v_with_aim += v_coord * n;
             }
             "down" => {
-                v += n;
+                v_coord += n;
             }
             "up" => {
-                v -= n;
+                v_coord -= n;
             }
             _ => bail!("invalid command: {}", cmd),
         }
     }
-    Ok((h, v, v_with_aim))
+    Ok((h_coord, v_coord, v_with_aim))
 }
 
 fn main() -> Result<()> {

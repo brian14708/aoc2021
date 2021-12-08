@@ -3,25 +3,20 @@ use std::{collections::HashSet, io::BufRead};
 
 fn parse(f: impl BufRead) -> Vec<(Vec<String>, Vec<String>)> {
     let mut ret = vec![];
-    for l in f.lines() {
-        if let Ok(l) = l {
-            let mut l = l.split(" | ");
-            let input = l.next();
-            if let Some(output) = l.next() {
-                let output = output
-                    .split(" ")
-                    .map(|s| String::from(s))
-                    .collect::<Vec<_>>();
-                ret.push((
-                    input
-                        .unwrap()
-                        .split(" ")
-                        .map(|s| String::from(s))
-                        .chain(output.iter().map(|s| s.clone()))
-                        .collect::<Vec<_>>(),
-                    output,
-                ))
-            }
+    for l in f.lines().flatten() {
+        let mut l = l.split(" | ");
+        let input = l.next();
+        if let Some(output) = l.next() {
+            let output = output.split(' ').map(String::from).collect::<Vec<_>>();
+            ret.push((
+                input
+                    .unwrap()
+                    .split(' ')
+                    .map(String::from)
+                    .chain(output.iter().cloned())
+                    .collect::<Vec<_>>(),
+                output,
+            ))
         }
     }
     ret
@@ -29,13 +24,7 @@ fn parse(f: impl BufRead) -> Vec<(Vec<String>, Vec<String>)> {
 
 fn count_1478(s: &[String]) -> usize {
     s.iter()
-        .filter(|s| match s.len() {
-            2 => true, // 1
-            4 => true, // 4
-            3 => true, // 7
-            7 => true, // 8
-            _ => false,
-        })
+        .filter(|s| matches!(s.len(), 2 | 4 | 3 | 7))
         .count()
 }
 
@@ -117,7 +106,7 @@ fn main() {
     let inp = parse(std::io::BufReader::new(std::io::stdin()));
     println!(
         "{}",
-        inp.iter().map(|(_, s)| { count_1478(&s) }).sum::<usize>(),
+        inp.iter().map(|(_, s)| { count_1478(s) }).sum::<usize>(),
     );
     let mut tot = 0;
     for (all, out) in inp {

@@ -12,7 +12,7 @@ fn avg<'a, T: 'a + Copy + num_traits::sign::Signed + std::convert::Into<f64>>(
     v: impl Iterator<Item = &'a T> + std::iter::ExactSizeIterator<Item = &'a T>,
 ) -> Option<f64> {
     let l = v.len();
-    let s = v.map(|&v| v).reduce(|a, v| (a + v))?;
+    let s = v.copied().reduce(|a, v| (a + v))?;
     Some((s.into() as f64) / (l as f64))
 }
 
@@ -36,7 +36,7 @@ fn sum_dist<'a, T: 'a + Copy + num_traits::sign::Signed>(
     .reduce(|a, v| a + v)
 }
 
-fn solve_part2(inp: &Vec<i32>) -> Option<i32> {
+fn solve_part2(inp: &[i32]) -> Option<i32> {
     let avg = avg(inp.iter())?;
     Some(std::cmp::min(
         sum_dist(inp.iter(), avg.floor() as i32)?,
@@ -45,16 +45,14 @@ fn solve_part2(inp: &Vec<i32>) -> Option<i32> {
 }
 
 fn main() {
-    for l in std::io::BufReader::new(std::io::stdin()).lines() {
-        if let Ok(l) = l {
-            let mut inp = l
-                .split(",")
-                .filter_map(|s| s.parse().ok())
-                .collect::<Vec<i32>>();
-            let m = median(&mut inp).unwrap();
-            println!("{}", l1_dist(inp.iter(), m).unwrap());
-            println!("{}", solve_part2(&inp).unwrap());
-        }
+    for l in std::io::BufReader::new(std::io::stdin()).lines().flatten() {
+        let mut inp = l
+            .split(',')
+            .filter_map(|s| s.parse().ok())
+            .collect::<Vec<i32>>();
+        let m = median(&mut inp).unwrap();
+        println!("{}", l1_dist(inp.iter(), m).unwrap());
+        println!("{}", solve_part2(&inp).unwrap());
     }
 }
 

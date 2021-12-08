@@ -17,15 +17,13 @@ fn count_fish(curr: &[usize], rate: usize, delay: usize, days: usize) -> u64 {
 }
 
 fn main() {
-    for l in std::io::BufReader::new(std::io::stdin()).lines() {
-        if let Ok(l) = l {
-            let inp = l
-                .split(",")
-                .filter_map(|s| s.parse().ok())
-                .collect::<Vec<_>>();
-            println!("{}", count_fish(&inp, 7, 9, 80));
-            println!("{}", count_fish(&inp, 7, 9, 256));
-        }
+    for l in std::io::BufReader::new(std::io::stdin()).lines().flatten() {
+        let inp = l
+            .split(',')
+            .filter_map(|s| s.parse().ok())
+            .collect::<Vec<_>>();
+        println!("{}", count_fish(&inp, 7, 9, 80));
+        println!("{}", count_fish(&inp, 7, 9, 256));
     }
 }
 

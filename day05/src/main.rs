@@ -85,7 +85,7 @@ fn solve<'a>(bbox: &Box, lines: impl Iterator<Item = &'a Line>) -> usize {
     let h = bbox.y2 - bbox.y1 + 1;
 
     let mut grid = vec![0u8; (w * h) as usize];
-    lines.map(|l| l.points()).flatten().for_each(|(x, y)| {
+    lines.flat_map(|l| l.points()).for_each(|(x, y)| {
         grid[((y - bbox.y1) * w + (x - bbox.x1)) as usize] += 1;
     });
     grid.into_iter().filter(|&c| c >= 2).count()

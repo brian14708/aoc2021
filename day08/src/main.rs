@@ -128,7 +128,7 @@ mod tests {
         let f = include_bytes!("../test/input.txt");
         let inp = parse(&f[..]);
         assert_eq!(
-            inp.iter().map(|(_, s)| { count_1478(&s) }).sum::<usize>(),
+            inp.iter().map(|(_, s)| { count_1478(s) }).sum::<usize>(),
             26,
         );
         let mut ret = vec![];

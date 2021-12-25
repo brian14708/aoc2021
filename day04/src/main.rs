@@ -56,10 +56,10 @@ impl Iterator for SolverIter<'_> {
             }
 
             if !self.result.is_empty() {
-                let seq = &mut self.seq[..self.curr_idx + 1];
+                let seq = &mut self.seq[..=self.curr_idx];
                 seq.sort_unstable();
 
-                for (m, score) in self.result.iter_mut() {
+                for (m, score) in &mut self.result {
                     self.marked[(*m * sz * 2)..((*m + 1) * sz * 2)].fill(-1);
 
                     *score = s * self.state.data[m]
@@ -131,7 +131,7 @@ impl BoardState {
 
 fn parse(f: impl BufRead) -> Result<(Vec<i32>, BoardState)> {
     let mut m = vec![];
-    let mut lines = f.lines().filter_map(|l| l.ok());
+    let mut lines = f.lines().filter_map(std::result::Result::ok);
     {
         let first_line = lines.next().ok_or(anyhow!("missing line"))?;
         for c in first_line.split(',') {

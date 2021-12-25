@@ -61,7 +61,11 @@ impl Region {
     }
 
     fn solve(&self) -> BTreeSet<(i32, i32)> {
-        BTreeSet::from_iter((1..).map(|i| self.solve_in_step(i)).while_some().flatten())
+        (1..)
+            .map(|i| self.solve_in_step(i))
+            .while_some()
+            .flatten()
+            .collect()
     }
 }
 

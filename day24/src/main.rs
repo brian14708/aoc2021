@@ -30,9 +30,8 @@ impl<const N: usize> Iterator for Countdown<N> {
                         if i == 0 {
                             self.curr = None;
                             return None;
-                        } else {
-                            curr[i] = 9;
                         }
+                        curr[i] = 9;
                     } else {
                         curr[i] -= 1;
                         break;

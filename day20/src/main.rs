@@ -60,20 +60,20 @@ impl Grid {
     fn step_impl(&mut self) {
         let mut buf = vec![];
         for i in 0..self.rows {
-            let mut d = self.data[i * self.cols] as u8;
+            let mut d = u8::from(self.data[i * self.cols]);
             d = (d << 1) | d;
             for j in 0..self.cols {
                 d = (d << 1) & ((1 << KERN_SIZE) - 1);
-                d |= self.data[i * self.cols + min(self.cols - 1, j + 1)] as u8;
+                d |= u8::from(self.data[i * self.cols + min(self.cols - 1, j + 1)]);
                 buf.push(d);
             }
         }
         for j in 0..self.cols {
-            let mut d: u16 = buf[j] as u16;
+            let mut d: u16 = u16::from(buf[j]);
             d = (d << KERN_SIZE) | d;
             for i in 0..self.rows {
                 d = (d << KERN_SIZE) & ((1 << (KERN_SIZE * KERN_SIZE)) - 1);
-                d |= buf[min(self.rows - 1, i + 1) * self.cols + j] as u16;
+                d |= u16::from(buf[min(self.rows - 1, i + 1) * self.cols + j]);
                 self.data[i * self.cols + j] = self.mapping[d as usize];
             }
         }

@@ -23,9 +23,9 @@ pub fn take_number(s: &str) -> Option<(&str, u32)> {
 
 pub fn consume(s: &str, c: char) -> Option<&str> {
     let (s, cc) = take_char(s)?;
-    if cc != c {
-        None
-    } else {
+    if cc == c {
         Some(s)
+    } else {
+        None
     }
 }

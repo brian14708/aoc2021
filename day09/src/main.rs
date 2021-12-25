@@ -52,7 +52,7 @@ fn find_minima(data: &[u8], rows: usize, cols: usize, mut f: impl FnMut(u8, usiz
                 std::cmp::Ordering::Greater => {
                     state[i * cols + j - 1] = false;
                 }
-                _ => {
+                std::cmp::Ordering::Equal => {
                     state[i * cols + j] = false;
                     state[i * cols + j - 1] = false;
                 }
@@ -68,7 +68,7 @@ fn find_minima(data: &[u8], rows: usize, cols: usize, mut f: impl FnMut(u8, usiz
                 std::cmp::Ordering::Greater => {
                     state[(i - 1) * cols + j] = false;
                 }
-                _ => {
+                std::cmp::Ordering::Equal => {
                     state[i * cols + j] = false;
                     state[(i - 1) * cols + j] = false;
                 }
@@ -90,7 +90,7 @@ fn main() {
     let mut tot: i32 = 0;
     let mut basins = vec![];
     find_minima(&data, rows, cols, |b, c| {
-        tot += b as i32 + 1;
+        tot += i32::from(b) + 1;
         basins.push(c);
     });
     basins.sort_unstable_by(|a, b| b.cmp(a));
@@ -115,7 +115,7 @@ mod tests {
         let mut tot = 0;
         let mut basins = vec![];
         find_minima(&data, rows, cols, |b, c| {
-            tot += b as i32 + 1;
+            tot += i32::from(b) + 1;
             basins.push(c);
         });
         basins.sort_unstable_by(|a, b| b.cmp(a));

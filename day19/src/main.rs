@@ -16,8 +16,8 @@ fn rotate(v: [i32; 3], rot: u8) -> [i32; 3] {
     let b0_group = (rot % 3) as usize;
     let b1_group = ((rot / 3 % 2) as usize + b0_group + 1) % 3;
 
-    let b0_sign = ((rot / 6) % 2) as i32 * -2 + 1;
-    let b1_sign = ((rot / 12) % 2) as i32 * -2 + 1;
+    let b0_sign = i32::from((rot / 6) % 2) * -2 + 1;
+    let b1_sign = i32::from((rot / 12) % 2) * -2 + 1;
 
     let dot_cross = {
         let mut basis = [[0; 3]; 2];
@@ -42,7 +42,7 @@ impl Scanner {
                 break;
             }
             let mut p = l.split(',').map(|s| s.parse::<i32>().unwrap());
-            pt.push([p.next().unwrap(), p.next().unwrap(), p.next().unwrap()])
+            pt.push([p.next().unwrap(), p.next().unwrap(), p.next().unwrap()]);
         }
         let mut dist = HashMap::new();
         for (i, p1) in pt.iter().enumerate() {
@@ -55,7 +55,7 @@ impl Scanner {
                     .extend(&[i, i + 1 + j]);
             }
         }
-        for (_, v) in dist.iter_mut() {
+        for v in dist.values_mut() {
             v.sort_unstable();
             v.dedup();
         }
@@ -81,50 +81,54 @@ impl Scanner {
             }
         }
 
-        let determined = HashMap::<usize, usize>::from_iter(
-            candidates.iter().enumerate().filter_map(|(i, c)| {
+        let determined = candidates
+            .iter()
+            .enumerate()
+            .filter_map(|(i, c)| {
                 let c = c.as_ref()?;
                 if c.len() == 1 {
                     Some((i, *c.iter().next()?))
                 } else {
                     None
                 }
-            }),
-        );
+            })
+            .collect::<HashMap<usize, usize>>();
         if determined.is_empty() {
             return None;
         }
 
-        let (r, translate) = (0..24)
-            .filter_map(|r| {
-                let mut it = determined.iter();
-                let (&i, &j) = it.next().unwrap();
+        let (r, translate) = (0..24).find_map(|r| {
+            let mut it = determined.iter();
+            let (&i, &j) = it.next().unwrap();
+            let pa = self.pt[i];
+            let pb = rotate(rhs.pt[j], r);
+            let translate = [pa[0] - pb[0], pa[1] - pb[1], pa[2] - pb[2]];
+
+            it.all(|(&i, &j)| {
                 let pa = self.pt[i];
                 let pb = rotate(rhs.pt[j], r);
-                let translate = [pa[0] - pb[0], pa[1] - pb[1], pa[2] - pb[2]];
-
-                it.all(|(&i, &j)| {
-                    let pa = self.pt[i];
-                    let pb = rotate(rhs.pt[j], r);
-                    let pb = [
-                        translate[0] + pb[0],
-                        translate[1] + pb[1],
-                        translate[2] + pb[2],
-                    ];
-                    pa == pb
-                })
-                .then(|| (r, translate))
+                let pb = [
+                    translate[0] + pb[0],
+                    translate[1] + pb[1],
+                    translate[2] + pb[2],
+                ];
+                pa == pb
             })
-            .next()?;
+            .then(|| (r, translate))
+        })?;
 
-        let beacons = Vec::from_iter(rhs.pt.iter().map(|a| {
-            let a = rotate(*a, r);
-            [
-                translate[0] + a[0],
-                translate[1] + a[1],
-                translate[2] + a[2],
-            ]
-        }));
+        let beacons = rhs
+            .pt
+            .iter()
+            .map(|a| {
+                let a = rotate(*a, r);
+                [
+                    translate[0] + a[0],
+                    translate[1] + a[1],
+                    translate[2] + a[2],
+                ]
+            })
+            .collect::<Vec<_>>();
 
         if determined.len() < 12
             && beacons
@@ -153,14 +157,12 @@ fn solve(mut scanners: Vec<Scanner>) -> (usize, i32) {
             .iter()
             .enumerate()
             .filter(|(i, _)| known.get(i).is_none())
-            .filter_map(|(i, s)| {
+            .find_map(|(i, s)| {
                 known
                     .iter()
-                    .filter_map(|&j| scanners[j].match_points(s))
-                    .next()
+                    .find_map(|&j| scanners[j].match_points(s))
                     .map(|p| (i, p))
-            })
-            .next();
+            });
 
         if let Some((i, (beacons, transform))) = r {
             known.insert(i);
@@ -172,7 +174,7 @@ fn solve(mut scanners: Vec<Scanner>) -> (usize, i32) {
 
     let d = scanners
         .iter()
-        .flat_map(|v| v.location)
+        .filter_map(|v| v.location)
         .tuple_combinations()
         .map(|(a, b)| (a[0] - b[0]).abs() + (a[1] - b[1]).abs() + (a[2] - b[2]).abs())
         .max()

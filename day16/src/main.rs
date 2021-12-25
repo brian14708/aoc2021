@@ -44,7 +44,7 @@ impl Packet {
             tuple((tag(0, 1usize), take(4usize))),
         )(input)?;
         value.push(last);
-        let value = value.iter().fold(0, |a, &(_, b)| a << 4 | (b as i64));
+        let value = value.iter().fold(0, |a, &(_, b)| a << 4 | i64::from(b));
         Ok((input, Packet::Literal { version, value }))
     }
 
@@ -101,11 +101,11 @@ impl Packet {
                     // max
                     3 => sub.max().unwrap(),
                     // gt
-                    5 => (sub.next().unwrap() > sub.next().unwrap()) as i64,
+                    5 => i64::from(sub.next().unwrap() > sub.next().unwrap()),
                     // lt
-                    6 => (sub.next().unwrap() < sub.next().unwrap()) as i64,
+                    6 => i64::from(sub.next().unwrap() < sub.next().unwrap()),
                     // eq
-                    7 => (sub.next().unwrap() == sub.next().unwrap()) as i64,
+                    7 => i64::from(sub.next().unwrap() == sub.next().unwrap()),
                     _ => panic!("invalid operation"),
                 }
             }

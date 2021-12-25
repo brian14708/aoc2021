@@ -16,7 +16,7 @@ fn parse(f: impl BufRead) -> Vec<(Vec<String>, Vec<String>)> {
                     .chain(output.iter().cloned())
                     .collect::<Vec<_>>(),
                 output,
-            ))
+            ));
         }
     }
     ret
@@ -34,18 +34,18 @@ fn char_idx(u: char) -> usize {
 
 fn solve_mapping(all: &[String]) -> [char; 7] {
     let mut mapping: [HashSet<char>; 7] = Default::default();
-    for i in mapping.iter_mut() {
-        i.extend('a'..='g')
+    for i in &mut mapping {
+        i.extend('a'..='g');
     }
 
     let mut retain_chars = |base: &str, set: &str| {
         for c in base.chars() {
-            mapping[char_idx(c)].retain(|&c| set.find(c).is_some())
+            mapping[char_idx(c)].retain(|&c| set.find(c).is_some());
         }
     };
 
-    let mut adg = HashSet::<char>::from_iter('a'..='g'); // possible candidates for "adg"
-    let mut abfg = HashSet::<char>::from_iter('a'..='g'); // possible candidates for "abfg"
+    let mut adg = ('a'..='g').collect::<HashSet<char>>(); // possible candidates for "adg"
+    let mut abfg = ('a'..='g').collect::<HashSet<char>>(); // possible candidates for "abfg"
     for word in all {
         match word.len() {
             2 => retain_chars(word, "cf"),                 // 1
@@ -70,8 +70,8 @@ fn solve_mapping(all: &[String]) -> [char; 7] {
             }
         }
 
-        for m in mapping.iter_mut() {
-            m.retain(|c| determined.get(c).is_none())
+        for m in &mut mapping {
+            m.retain(|c| determined.get(c).is_none());
         }
     }
 

@@ -9,7 +9,7 @@ enum Type {
 }
 
 impl Type {
-    fn cost(&self, step: usize) -> usize {
+    fn cost(self, step: usize) -> usize {
         step * match self {
             Self::A => 1,
             Self::B => 10,

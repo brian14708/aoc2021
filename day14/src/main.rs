@@ -34,7 +34,7 @@ impl Polymer {
 
     fn step(&mut self) {
         let old = std::mem::take(&mut self.template);
-        for (k, v) in old.into_iter() {
+        for (k, v) in old {
             if let Some(&replace) = self.rules.get(&k) {
                 *self.template.entry((k.0, replace)).or_insert(0) += v;
                 *self.template.entry((replace, k.1)).or_insert(0) += v;
@@ -99,7 +99,7 @@ mod tests {
             p.step();
         }
         let h = p.histogram();
-        assert_eq!(h[0].1, 2192039569602);
-        assert_eq!(h[h.len() - 1].1, 3849876073);
+        assert_eq!(h[0].1, 2_192_039_569_602);
+        assert_eq!(h[h.len() - 1].1, 3_849_876_073);
     }
 }

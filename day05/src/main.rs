@@ -60,7 +60,7 @@ impl Box {
         }
     }
 
-    fn union(&self, r: Self) -> Self {
+    fn union(&self, r: &Self) -> Self {
         Self {
             x1: min(self.x1, r.x1),
             y1: min(self.y1, r.y1),
@@ -77,7 +77,7 @@ fn parse(f: impl BufRead) -> Vec<Line> {
 }
 
 fn bbox<'a>(lines: impl Iterator<Item = &'a Line>) -> Box {
-    lines.fold(Box::min(), |b, l| b.union(l.bbox()))
+    lines.fold(Box::min(), |b, l| b.union(&l.bbox()))
 }
 
 fn solve<'a>(bbox: &Box, lines: impl Iterator<Item = &'a Line>) -> usize {
@@ -85,7 +85,7 @@ fn solve<'a>(bbox: &Box, lines: impl Iterator<Item = &'a Line>) -> usize {
     let h = bbox.y2 - bbox.y1 + 1;
 
     let mut grid = vec![0u8; (w * h) as usize];
-    lines.flat_map(|l| l.points()).for_each(|(x, y)| {
+    lines.flat_map(Line::points).for_each(|(x, y)| {
         grid[((y - bbox.y1) * w + (x - bbox.x1)) as usize] += 1;
     });
     grid.into_iter().filter(|&c| c >= 2).count()

@@ -80,7 +80,7 @@ impl Origami {
 impl Display for Origami {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut prev = (0, 0);
-        for &(y, x) in self.dots.iter() {
+        for &(y, x) in &self.dots {
             while y != prev.0 {
                 writeln!(f)?;
                 prev.0 += 1;

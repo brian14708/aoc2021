@@ -15,7 +15,7 @@ fn parse(f: impl std::io::BufRead) -> std::io::Result<(Vec<usize>, usize)> {
     Ok((val, bitlen))
 }
 
-fn bit_stat(vals: &[usize], bitlen: usize) -> std::io::Result<(usize, usize)> {
+fn bit_stat(vals: &[usize], bitlen: usize) -> (usize, usize) {
     let mut cnt = vec![0; bitlen];
     for v in vals {
         for (i, c) in cnt.iter_mut().enumerate() {
@@ -32,7 +32,7 @@ fn bit_stat(vals: &[usize], bitlen: usize) -> std::io::Result<(usize, usize)> {
         .rev()
         .fold(0, |m, &c| (m << 1) + if c >= 0 { 1 } else { 0 });
 
-    Ok((mcb, (1 << bitlen) - 1 - mcb))
+    (mcb, (1 << bitlen) - 1 - mcb)
 }
 
 fn traverse_partition(
@@ -73,7 +73,7 @@ fn main() -> std::io::Result<()> {
 
     let f = File::open(&args[1])?;
     let (vals, bitlen) = parse(BufReader::new(f))?;
-    let (mcb, lcb) = bit_stat(&vals, bitlen)?;
+    let (mcb, lcb) = bit_stat(&vals, bitlen);
     let o = traverse_partition(&vals, bitlen, max_len);
     let c = traverse_partition(&vals, bitlen, min_len);
     println!("{} {} ", mcb * lcb, o * c);
@@ -101,7 +101,7 @@ mod tests {
             .as_bytes();
 
         let (vals, bitlen) = parse(f).unwrap();
-        assert_eq!(bit_stat(&vals, bitlen).unwrap(), (22, 9));
+        assert_eq!(bit_stat(&vals, bitlen), (22, 9));
         assert_eq!(traverse_partition(&vals, bitlen, max_len), 23);
         assert_eq!(traverse_partition(&vals, bitlen, min_len), 10);
     }

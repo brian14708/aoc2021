@@ -62,11 +62,11 @@ where
     fn add(&mut self, sz: [T; 6], state: bool) {
         let c = Cube(sz);
 
-        let mut tmp = Vec::from_iter(
-            self.set
-                .iter()
-                .flat_map(|(k, &v)| Some((k.intersect(&c)?, -v))),
-        );
+        let mut tmp = self
+            .set
+            .iter()
+            .filter_map(|(k, &v)| Some((k.intersect(&c)?, -v)))
+            .collect::<Vec<_>>();
         if state {
             tmp.push((c, 1));
         }
@@ -85,7 +85,7 @@ where
     fn volume(&self) -> i64 {
         self.set
             .iter()
-            .map(|(k, v)| k.volume() as i64 * *v as i64)
+            .map(|(k, v)| k.volume() as i64 * i64::from(*v))
             .sum()
     }
 
@@ -158,8 +158,8 @@ mod tests {
         assert_eq!(m.volume(), 39);
         let mut m = parse(&include_bytes!("../test/input2.txt")[..]);
         m.restrict_axis(-50, 50);
-        assert_eq!(m.volume(), 590784);
+        assert_eq!(m.volume(), 590_784);
         let m = parse(&include_bytes!("../test/input3.txt")[..]);
-        assert_eq!(m.volume(), 2758514936282235);
+        assert_eq!(m.volume(), 2_758_514_936_282_235);
     }
 }

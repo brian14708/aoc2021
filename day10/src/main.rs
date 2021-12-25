@@ -109,6 +109,6 @@ mod tests {
             .filter_map(|r| r.as_ref().ok().map(|p| score_incomplete(p)))
             .collect::<Vec<_>>();
         let n = l.len() / 2;
-        assert_eq!(*l.select_nth_unstable(n).1, 288957);
+        assert_eq!(*l.select_nth_unstable(n).1, 288_957);
     }
 }

@@ -26,9 +26,7 @@ impl CaveGraph {
         let mut g = Self::new();
         for l in f.lines().flatten() {
             let mut l = l.split('-');
-            let a = l.next();
-            let b = l.next();
-            g.add_edge(a.unwrap(), b.unwrap());
+            g.add_edge(l.next().unwrap(), l.next().unwrap());
         }
         g
     }
@@ -100,7 +98,7 @@ impl CaveGraph {
 
 impl Drop for CaveGraph {
     fn drop(&mut self) {
-        for (_, v) in self.caves.iter_mut() {
+        for v in self.caves.values_mut() {
             let mut m = v.borrow_mut();
             m.next.clear();
         }

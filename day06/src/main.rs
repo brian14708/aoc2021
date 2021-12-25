@@ -36,6 +36,6 @@ mod tests {
         let inp = vec![3, 4, 3, 1, 2];
         assert_eq!(count_fish(&inp, 7, 9, 18), 26);
         assert_eq!(count_fish(&inp, 7, 9, 80), 5934);
-        assert_eq!(count_fish(&inp, 7, 9, 256), 26984457539);
+        assert_eq!(count_fish(&inp, 7, 9, 256), 26_984_457_539);
     }
 }

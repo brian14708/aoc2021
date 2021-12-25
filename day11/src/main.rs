@@ -68,7 +68,7 @@ impl Grid {
             }
         }
         let mut flashes = 0;
-        for d in self.data.iter_mut() {
+        for d in &mut self.data {
             if *d < 0 {
                 *d = 0;
                 flashes += 1;

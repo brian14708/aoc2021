@@ -53,14 +53,14 @@ impl QuantumDice {
         }
     }
 
-    fn compose(&mut self, rhs: Self) {
+    fn compose(&mut self, rhs: &Self) {
         let mut v = HashMap::new();
-        for &(i, v1) in self.values.iter() {
-            for &(j, v2) in rhs.values.iter() {
+        for &(i, v1) in &self.values {
+            for &(j, v2) in &rhs.values {
                 *v.entry(i + j).or_insert(0) += v1 * v2;
             }
         }
-        self.values = v.iter().map(|(&k, &v)| (k, v)).collect()
+        self.values = v.iter().map(|(&k, &v)| (k, v)).collect();
     }
 
     fn win_rolls<const N: usize>(&self, p: [u32; N], target: u32) -> [u64; N] {
@@ -87,19 +87,19 @@ impl QuantumDice {
 
         let mut ret = [0; N];
         let (old_pos, old_score) = (p[offset], scores[offset]);
-        for &(idx, cnt) in self.values.iter() {
+        for &(idx, cnt) in &self.values {
             let pos = (old_pos + idx) % 10;
             let s = old_score + pos + 1;
 
             if s >= target {
-                ret[offset] += cnt as u64;
+                ret[offset] += u64::from(cnt);
             } else {
                 p[offset] = pos;
                 scores[offset] = s;
 
                 let r = self.win_rolls_impl::<N>(p, scores, (offset + 1) % N, target, memo);
                 for i in 0..ret.len() {
-                    ret[i] += r[i] * cnt as u64;
+                    ret[i] += r[i] * u64::from(cnt);
                 }
             }
         }
@@ -125,8 +125,8 @@ fn main() {
     }
 
     let mut q = QuantumDice::from(&[1, 2, 3]);
-    q.compose(QuantumDice::from(&[1, 2, 3]));
-    q.compose(QuantumDice::from(&[1, 2, 3]));
+    q.compose(&QuantumDice::from(&[1, 2, 3]));
+    q.compose(&QuantumDice::from(&[1, 2, 3]));
     println!("{}", q.win_rolls(PLAYERS, 21).iter().max().unwrap());
 }
 
@@ -138,13 +138,16 @@ fn test() {
         let s = players[i % players.len()].forward(d.roll3());
 
         if s >= 1000 {
-            assert_eq!(d.cnt * players[(i + 1) % players.len()].score, 739785);
+            assert_eq!(d.cnt * players[(i + 1) % players.len()].score, 739_785);
             break;
         }
     }
 
     let mut q = QuantumDice::from(&[1, 2, 3]);
-    q.compose(QuantumDice::from(&[1, 2, 3]));
-    q.compose(QuantumDice::from(&[1, 2, 3]));
-    assert_eq!(q.win_rolls([4, 8], 21), [444356092776315, 341960390180808]);
+    q.compose(&QuantumDice::from(&[1, 2, 3]));
+    q.compose(&QuantumDice::from(&[1, 2, 3]));
+    assert_eq!(
+        q.win_rolls([4, 8], 21),
+        [444_356_092_776_315, 341_960_390_180_808]
+    );
 }
